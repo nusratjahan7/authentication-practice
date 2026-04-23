@@ -1,10 +1,10 @@
 'use client'
-import { Button, Description, FieldError, Form, Input, InputGroup, Label, TextField, ToastProvider } from "@heroui/react";
+import { Button, Description, FieldError, Form, Input, InputGroup, Label, TextField} from "@heroui/react";
 import { Check, Eye, EyeSlash } from "@gravity-ui/icons";
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import Link from "next/link";
 import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
 
 const SigninPage = () => {
     const [isVisible, setIsVisible] = useState(false);
@@ -13,7 +13,35 @@ const SigninPage = () => {
         const formData = new FormData(e.currentTarget);
         const userData = Object.fromEntries(formData.entries());
         console.log("User data: ", userData);
+        
+        const { data, error } = await authClient.signIn.email({
+            email: userData.email,
+            password: userData.password,
+            rememberMe: true,
+            callbackURL: "/dashboard",
+        });
+
+        console.log('sign in response: ', { data, error });
+        
+        if (data) {
         toast.success("Sign-in successful!");
+    }
+
+    if (error) {
+        console.error("Sign-in error details:", {
+            message: error.message,
+            status: error.status,
+            statusText: error.statusText,
+            code: error.code,
+            error: error.error,
+            keys: Object.getOwnPropertyNames(error),
+        });
+        toast.error(
+            error.error?.message ||
+            error.message ||
+            'Invalid email or password. Please try again!'
+        );
+    }
 
     };
 
